@@ -1,0 +1,38 @@
+#%RAML 1.0 Library
+uses:
+  meta: meta.raml
+  generic: generic.raml
+(meta.module):  classification_pipeline.classification
+types:
+  ClassificationPipeline:
+    (meta.entry): true
+    type: generic.GenericPipeline
+    discriminator: architecture
+    properties:
+      inference_batch:
+        (meta.custom): true
+      testSplit?:
+        (meta.custom): true
+      testSplitSeed?:
+        (meta.custom): true
+      freeze_encoder:
+        type: boolean
+        (meta.custom): true
+      manualResize?:
+        (meta.custom): true
+        type: boolean          
+      manualResize:
+        type: boolean
+        (meta.custom): true
+      architecture?:
+        (meta.custom): true
+        type: string
+        enum: ['resnet18', 'resnet50', 'resnet101', 'resnet152', 'seresnet18', 'seresnet34', 'seresnet50', 'seresnet101', 'seresnet152', 'seresnext50', 'seresnext101', 'senet154', 'resnet50v2', 'resnet101v2', 'resnet152v2', 'resnext50', 'resnext101', 'vgg16', 'vgg19', 'densenet121', 'densenet169', 'densenet201', 'inceptionresnetv2', 'inceptionv3', 'xception', 'nasnetlarge', 'nasnetmobile', 'mobilenet', 'mobilenetv2']
+      weights?:
+        enum: [imagenet, imagenet11k-places365ch,imagenet11k]
+      crops?:
+        type: integer
+        (meta.custom): true
+      shape:
+        (meta.alias): input_shape
+        type: meta.image_shape

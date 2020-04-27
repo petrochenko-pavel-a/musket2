@@ -1,0 +1,23 @@
+#%Musket Generic 1.0
+architecture: conv2mnist #pre-trained model we are going to use
+optimizer: Adam #Adam optimizer is a good default choice
+batch_size: 7 #our batch size will be 16
+lr: 0.001
+metrics: #we would like to track some metrics
+  - binary_accuracy
+primary_metric: val_binary_accuracy #the most interesting metric is val_binary_accuracy
+primary_metric_mode: max
+folds_count: 1
+early_stopping: 15
+schedule:
+  ReduceLROnPlateau:
+    patience: 2
+    factor: 0.3
+    cooldown: 1
+    verbose: true
+loss: binary_crossentropy #we use binary_crossentropy loss
+stages:
+  - epochs: 10 #let's go for 100 epochs
+dataset: mnist
+final_metrics: [ binary_accuracy ]   #You may use more then one metric here
+experiment_result: binary_accuracy

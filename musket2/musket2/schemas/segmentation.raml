@@ -1,0 +1,169 @@
+#%RAML 1.0 Library
+uses:
+  meta: meta.raml
+  generic: generic.raml
+(meta.module):  musket2.imaging.segmentation
+types:
+  PipelineConfig:
+    (meta.entry): true
+    type: generic.GenericPipeline
+    discriminator: architecture
+    properties:
+      compressPredictionsAsInts:
+         (meta.custom): true
+         type: boolean
+      inference_batch:
+         (meta.custom): true
+      classifier:
+        type: string
+        (meta.custom): true
+        enum: [resnet50,densenet121,densenet169,densenet201]
+      copyWeights?:
+        type: boolean
+        (meta.custom): true
+      manualResize:
+        type: boolean
+        (meta.custom): true
+      backbone?:
+        (meta.alias): backbone_name
+        type: string
+        enum: ['resnet18', 'resnet50', 'resnet101', 'resnet152', 'seresnet18', 'seresnet34', 'seresnet50', 'seresnet101', 'seresnet152', 'seresnext50', 'seresnext101', 'senet154', 'resnet50v2', 'resnet101v2', 'resnet152v2', 'resnext50', 'resnext101', 'vgg16', 'vgg19', 'densenet121', 'densenet169', 'densenet201', 'inceptionresnetv2', 'inceptionv3', 'xception', 'nasnetlarge', 'nasnetmobile', 'mobilenet', 'mobilenetv2']
+      encoder_weights?:
+        enum: [imagenet, imagenet11k-places365ch,imagenet11k]
+      freeze_encoder:
+        type: boolean
+        (meta.custom): true  
+      crops:
+        type: integer
+        (meta.custom): true
+      activation:
+        (meta.custom): false
+      architecture:
+        enum: [ Unet, FPN, Linknet, PSPNet, DeepLabV3]
+        (meta.custom): true
+      shape:
+        (meta.alias): input_shape
+        type: meta.image_shape
+      stages  :
+        type: SegmentationStageConfig[]
+        (meta.custom): true
+  SegmentationStageConfig:
+    type: generic.StageConfig
+    properties:
+      negatives?:
+        type: St | number
+      validation_negatives?:
+        type: St | number
+
+  DeepLabV3:
+      type: PipelineConfig
+      discriminatorValue: DeepLabV3
+      properties:
+        backbone?:
+          (meta.alias): backbone_name
+          type: string
+          enum: [mobilenetv2, xception]
+        encoder_weights?:
+          type: string
+          enum: [pascal_voc]
+        alpha?:
+          type: number
+          default: 1.0
+        OS?:
+          type: integer
+          default: 16
+        freeze_encoder?:
+          type: boolean
+          enum: [ false ]
+  Unet:
+      type: PipelineConfig
+      discriminatorValue: Unet
+      properties:
+        decoder_block_type?:
+          type: string
+          enum: [upsampling , transpose ]
+          default: upsampling
+        decoder_filters?:
+          type: integer[]
+          default: [256,128,64,32,16]
+        n_upsample_blocks:
+            type: integer
+            default: 5
+        upsample_rates:
+          type: integer[]
+          default: [2,2,2,2,2]
+        use_batchnorm:
+          (meta.alias): decoder_use_batchnorm
+          type: boolean
+          default: true
+  FPN:
+    type: PipelineConfig
+    discriminatorValue: FPN
+    properties:
+      pyramid_block_filters?:
+        type: integer
+        default: 256
+      segmentation_block_filters?:
+        type: integer
+        default: 128
+      upsample_rates?:
+        type: integer[]
+        default: [2,2,2]
+      last_upsample?:
+        type: integer
+        default: 4
+      interpolation:
+        type: string
+        enum: [bilinear,nearest]
+        default: bilinear
+      use_batchnorm?:
+        type: boolean
+        default: true
+      dropout?:
+        type: number
+        default: 0
+  Linknet:
+    type: PipelineConfig
+    properties:
+      decoder_filters?:
+        type: integer[]
+      use_batchnorm?:
+        (meta.alias): decoder_use_batchnorm
+        type: boolean
+        default: true
+      n_upsample_blocks?:
+        type: number
+        default: 5
+      upsample_layer:
+        type: string
+        enum: [ upsampling, transpose]
+        default: upsampling
+      upsample_kernel_size:
+        type: integer[]
+        minItems: 2
+        maxItems: 2
+        default: [3,3]
+  PSPNet:
+    type: PipelineConfig
+    discriminatorValue: PSPNet
+    properties:
+      downsample_factor?:
+        type: integer
+        default: 8
+      psp_conv_filters?:
+        type: integer
+        default: 512
+      psp_pooling_type?:
+        type: string
+        enum: [ avg , max ]
+        default: avg
+      use_batchnorm?:
+        type: boolean
+        default: true
+      dropout?:
+        type: number
+        default: 0
+      final_interpolation?:
+        type: string
+        default: bilinear
+        enum: [bilinear,nearest]
