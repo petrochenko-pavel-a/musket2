@@ -87,6 +87,7 @@ class GenericConfig:
         self.drop_last=True
         self.aug=None
         self.num_workers=0
+        self.path=None
         self.imports=[]
         self.dataset=None
         self.test=None
@@ -176,7 +177,7 @@ class GenericConfig:
         return self.stages[stage].predict(dataset,target,fold_num)
 
 
-    def predictions(self,dataset,fold_num,stage):
+    def predictions(self,dataset,fold_num,stage=-1):
         pred = os.path.join(os.path.dirname(self.path), "predictions")
         ensure(pred)
         fName = os.path.join(pred,dataset + "." + str(fold_num) + "." + str(stage))
@@ -218,7 +219,7 @@ class TrainingStage:
 
         self.epochs=stage_dict['epochs']
         self.loss=key_or_default("loss",stage_dict,cfg.loss)
-        self.outputTransform = cfg.outputTransform
+
         self.schedule=key_or_default("schedule",stage_dict,cfg.schedule)
         self.n_saved=key_or_default("n_saved",stage_dict,1)
         self.early_stopping=key_or_default("early_stopping",stage_dict,cfg.early_stopping)
@@ -234,10 +235,10 @@ class TrainingStage:
         loader = self.cfg.create_loader(dataset)
         if torch.cuda.is_available():
             mdl = mdl.cuda()
-        evaluator = create_supervised_evaluator(mdl, prepare_batch=self.cfg.batchPrepare)
+        evaluator = create_supervised_evaluator(mdl, prepare_batch=self.cfg.batchPrepare,output_transform=self.cfg.outputTransform)
         @evaluator.on(Events.ITERATION_COMPLETED)
         def accept(eng):
-            batch_predictions=eng.state.output[0].cpu().numpy()
+            batch_predictions=eng.state.output[1].cpu().numpy()
             #print(batch_predictions)
             for v in batch_predictions:
                 targetDataset.append(v)
@@ -324,7 +325,7 @@ class TrainingStage:
                                                     metrics={
                                                         'binary_accuracy': Accuracy(),
                                                         'loss': Loss(loss)
-                                                    },prepare_batch=self.cfg.batchPrepare,output_transform=self.outputTransform)
+                                                    },prepare_batch=self.cfg.batchPrepare,output_transform=self.cfg.outputTransform)
             @trainer.on(Events.ITERATION_COMPLETED)
             def log_training_loss(trainer):
                 pb.params["metrics"]={"loss":trainer.state.output}

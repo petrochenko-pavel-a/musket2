@@ -54,6 +54,7 @@ class ExtensionBase:
         if len(args)>0:
             return self.object(*argsList,**args)
         else:
+
             return self.object(*argsList)
 
 def extensions(clazz:type):

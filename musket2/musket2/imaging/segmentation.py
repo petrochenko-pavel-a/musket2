@@ -1,6 +1,7 @@
 from musket2 import  generic,datasets
 from .datasets import create_segmentation_loader
 import segmentation_models_pytorch as stm
+import numpy as np
 
 
 class PipelineConfig(generic.GenericConfig):
@@ -22,7 +23,7 @@ class PipelineConfig(generic.GenericConfig):
         self.batchPrepare=batchPrepare
 
         def outputTransform(y, y1, y2):
-            return y1, (y2 > 0.5).type_as(y1)
+            return y1, (y2 > 0.5).permute(0,2,3,1)
         self.outputTransform=outputTransform
 
 
@@ -34,5 +35,5 @@ class PipelineConfig(generic.GenericConfig):
         return clazz(self.backbone,activation=self.activation)
 
     def create_loader(self,ds):
-        return  create_segmentation_loader(ds,self.shape,self.batch_size,self.drop_last,self.aug)
+        return  create_segmentation_loader(ds,self.shape,self.batch_size,0,False,False,self.aug)
 

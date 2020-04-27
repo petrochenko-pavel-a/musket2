@@ -215,7 +215,7 @@ class BufferedWriteableDS(WriteableDataSet):
                 it.prediction = self.predictions[item]
         return it
 
-
+import cv2
 class DirectWriteableDS(WriteableDataSet):
 
     def __init__(self, orig, name, dsPath, count=0):
@@ -243,8 +243,14 @@ class DirectWriteableDS(WriteableDataSet):
         it = self.parent[item]
         ip = self.item_path(item)
         if os.path.exists(ip):
-          it.prediction = self.load_item(ip)
+          it.prediction = self.adapt(it,self.load_item(ip))
         return it
+
+    def adapt(self,it,pred):
+        ms=it.y.shape
+        if pred.shape!=ms:
+            ms=cv2.resize(pred,(ms[1],ms[0]))
+        return ms
 
     def item_path(self, item: int) -> str:
         return f"{self.dsPath}/{item}.npy"
@@ -262,7 +268,7 @@ class DirectWriteableDS(WriteableDataSet):
 class CompressibleWriteableDS(DirectWriteableDS):
 
     def __init__(self, orig, name, dsPath, count=0, asUints=True, scale=255):
-        super().__init__()
+        super().__init__(orig,name,dsPath)
         self.parent = orig
         self.name = name
         self.dsPath = dsPath
